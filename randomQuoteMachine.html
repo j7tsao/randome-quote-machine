@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/3.5.2/redux.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react-redux/5.0.7/react-redux.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux-thunk/2.3.0/redux-thunk.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css">
+        <title>Random Quote Machine</title>
+        <link rel="stylesheet" href="randomQuoteMachine.css">
+        
+    </head>
+    <body>
+        <div id="app">
+        </div>
+        <script type="text/babel">
+            // Codepen's settings to import ReduxThunk and applyMiddleware
+            // const thunk = ReduxThunk.default
+            // const { Provider, connect } = ReactRedux
+            // const { createStore, applyMiddleware } = Redux
+
+
+            // Random function: random integer from 0 to (max - 1)
+            // Math.random() returns a random number between 0 (inclusive), and 1 (exclusive)
+            // Math.floor(Math.random() * 11);      
+            // returns a random integer from 0 to 10
+            const getRndItem = max => Math.floor(Math.random() * max)
+
+            // Redux:
+            // Action, Store, Reducer, State, Middleware, Thunk
+            // ============ ACTION CREATORS =============
+
+            // action.type, to be used in Reducer and also in action 
+            const LOADING = 'LOADING'
+            const FETCH_QUOTE = 'FETCH_QUOTE' // quotes received
+            const NEW_QUOTE = 'NEW_QUOTE'
+
+            // Action with 3 different types with other extra fields(properties):
+
+            const fetchQuote = () => {  // action, return a function(dispatch) instead of an object
+                return function(dispatch) {
+                    dispatch({type: LOADING}) 
+                    fetch("https://gist.githubusercontent.com/camperbot/5a022b72e96c4c9585c32bf6a75f62d9/raw/e3c6895ce42069f0ee7e991229064f167fe8ccdc/quotes.json")
+                    .then(res => res.json())    // quotes received
+                    .then(json => dispatch({type: FETCH_QUOTE, quotes_list: json.quotes})) // dispatch an action
+                }
+            }
+
+            const newQuote = (quoteIndex, colorIndex) => {    // action, return an object 
+                return {
+                    type: NEW_QUOTE,
+                    quoteIndex,         // = quoteIndex: quoteIndex
+                    colorIndex          // = colorIndex: colorIndex
+                }
+            }
+
+            // ========== REDUCER ===============
+
+            const colors = [
+                "#6cd2c5",
+                "#16a085",
+                "#27ae60",
+                "#f39c12",
+                "#a29bfe",
+                "#FB6964",
+                "#BDBB99",
+                "#77B1A9",
+                "#73A857",
+                "#74b9ff",
+                "#ffeaa7",
+                "#ff9ff3",
+                "#48dbfb",
+                "#ffcccc",
+                "#cd84f1",
+                "#fffa65"
+            ];
+
+            const defaultState = {
+                colors: colors,
+                loading: false,
+                backgroundColor: colors[0],
+                quotes_list: [],
+                present: {quote: "", author: ""}
+            }
+
+            const quoteReducer = (state = defaultState, action) => {
+                switch(action.type) {
+                    case LOADING:
+                        return {
+                            ...state,
+                            loading: true,
+                        }
+                    case FETCH_QUOTE:       // quotes received, when page was loaded
+                        return {
+                            ...state,
+                            loading: false,
+                            quotes_list: action.quotes_list,
+                            backgroundColor: state.colors[getRndItem(state.colors.length)],
+                            present: action.quotes_list[getRndItem(action.quotes_list.length)]
+                        }
+                    case NEW_QUOTE:         // "New" button clicked
+                        return {
+                            ...state,
+                            backgroundColor: state.colors[getRndItem(state.colors.length)],
+                            present: state.quotes_list[getRndItem(state.quotes_list.length)]
+                        }
+                    default:                
+                        return state;
+                }
+            }
+            // ============== STORE ===============
+
+            const store = createStore(quoteReducer, applyMiddleware(thunk))
+
+            // React:
+            // child Component of QuoteMachinePractice
+            const QuotePlate = ({quote = "", author = ""}) => {
+                return (
+                    <div className="quote-plate" id="quote-plate">
+                        <div id="text">{quote}</div>
+                        <div id="author"> - {author}</div>
+                    </div>
+                )
+            }
+
+
+            class QuoteMachinePractice extends React.Component {
+                componentDidMount() {
+                    this.props.fetchQuote()
+                }
+
+                getNewQuote = () => {
+                    const quoteIndex = getRndItem(this.props.quotes_list.length)
+                    const colorIndex = getRndItem(this.props.colors.length)
+                    this.props.newQuote(quoteIndex, colorIndex)
+                }
+
+                render() {
+                    const { present, backgroundColor, loading } = this.props
+
+                    return (
+                        <div className="container" style={{backgroundColor: backgroundColor}}>
+                            <div className="quote-machine">
+                            <div className="quote-box" id="quote-box">
+                                <div className="border left"></div>
+                                <div className="border right"></div>
+                                {loading ? 
+                                <QuotePlate /> : 
+                                <QuotePlate quote={present.quote} 
+                                            author={present.author} />}
+                                <a 
+                                id="tweet-quote"
+                                className='click'
+                                target="_blank"
+                                href="https://twitter.com/intent/tweet"
+                                > Tweeter </a>
+                                <button
+                                id="new-quote"
+                                className='click'
+                                onClick={this.getNewQuote}> 
+                                New 
+                                </button>
+                            </div>
+                        </div>
+                        </div>
+                    )
+                }
+            }
+
+            // React-Redux:
+            const mapStateToProps = state => {
+                return {
+                    loading: state.loading,
+                    backgroundColor: state.backgroundColor,
+                    colors: state.colors,
+                    quotes_list: state.quotes_list,
+                    present: state.present
+                }
+            }
+
+            const mapDispatchToProps = dispatch => {
+                return {
+                    fetchQuote: () => dispatch(fetchQuote()),
+                    newQuote: (quoteIndex, colorIndex) => 
+                    dispatch(newQuote(quoteIndex, colorIndex))
+                }
+            }
+
+            const QuoteMachinePracticeApp = connect(
+                mapStateToProps, 
+                mapDispatchToProps
+                )(QuoteMachinePractice)
+
+            function App() {
+            return (
+                <Provider store={store}>
+                <div>
+                    <QuoteMachinePracticeApp />
+                </div>
+                </Provider>
+            )
+            }
+
+            ReactDOM.render(<App />, document.getElementById("app"));
+        </script>
+        
+    </body>
+</html>

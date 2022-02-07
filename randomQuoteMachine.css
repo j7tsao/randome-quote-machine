@@ -1,0 +1,94 @@
+/* Using SASS */
+
+* {
+  padding: 0;
+  margin: 0;
+}
+
+@mixin flex-center {
+    display: flex;
+    align-items: center;        // vertical
+    justify-content: center;    // horizontal
+}
+
+.container {
+    @include flex-center;
+    height: 100vh;
+}
+
+.quote-machine {
+    width: 600px;
+
+    min-height: 400px;
+    max-height: 400px;
+
+    overflow: hidden;
+
+    .quote-box {
+    position: relative;
+    height: 100%;
+    
+      .border {
+      position: relative;
+      width: 2px;
+      height: 100%;
+      background-color: black;
+      box-shadow: 5px 0px 0px 0px rgba(0, 0, 0, 0.2);
+
+      &.left {
+        left: 10%;
+      }
+
+      &.right {
+        float: right;
+        transform: rotate(180deg);
+      }
+    }
+
+  .quote-plate {
+      position: absolute;
+      text-align: center;
+
+      #text {
+        font-size: 30px;
+        font-weight: bold;
+      }
+
+      #author {
+        font-size: 23px;
+      }
+    }
+      
+    .click {
+        position: absolute;
+        width: 20%;
+        height: 40px;
+        margin: auto;
+        top: 250px;
+        text-align: center;
+        color: white;
+        background-color: black;
+        border-radius: 5px;
+        border: 0;
+        box-shadow: 5px -5px 1px 1px rgba(3, 68, 73, 0.3);
+        transition: transform 1s;
+    
+        &:hover {
+            transform: scale(1.2);
+        }
+    
+        &#tweet-quote {
+            left: 5%;
+            text-decoration: none;
+            padding: 15px 0 0 0;
+        }
+        &#new-quote {
+            right: 5%;
+            cursor: pointer;
+            height: 55px;
+        }
+    }
+  }
+}
+
+
